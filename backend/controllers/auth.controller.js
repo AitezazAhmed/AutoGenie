@@ -6,7 +6,6 @@ import { setUser } from "../services/auth.service.js";
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 export const googleLogin = async (req, res) => {
   const { credential } = req.body;
-
   try {
     // 1. Verify token with Google
     const ticket = await client.verifyIdToken({
