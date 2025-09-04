@@ -1,48 +1,56 @@
 import User from "../models/user.model.js"
 import bcrypt from "bcryptjs"
-import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
+
+import admin from "../firebase.js";
 import { setUser } from "../services/auth.service.js";
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import dotenv from "dotenv";
+dotenv.config();
+
+
 export const googleLogin = async (req, res) => {
-  const { credential } = req.body;
+  const { token } = req.body;
+
   try {
-    // 1. Verify token with Google
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    const { email, name, picture, sub } = payload;
-
-    // 2. Check if user exists
-    let user = await User.findOne({ email });
-
-    // 3. If not, create user
+    // Verify Google token
+    const decoded = await admin.auth().verifyIdToken(token);
+  
+    // Find or create user in your DB
+    let user = await User.findOne({ email: decoded.email });
     if (!user) {
       user = await User.create({
-        fullName: name,
-        email,
-        profilePic: picture,
-        googleId: sub,
+         fullName:decoded.name || decoded.email.split("@")[0],
+        email:decoded.email,
+        password: decoded.email,
+        
+        googleId: decoded.uid,
       });
     }
+  
 
-    // 4. Generate your own JWT for login
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+    // Create your own JWT (same as signup)
+       const appToken = setUser(user);
+
+    // Set cookie
+    res.cookie("uid", appToken, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: "None",
+      secure: process.env.NODE_ENV !== "development",
     });
 
-    // 5. Return user and token
-    res.status(200).json({ user, token });
-  } catch (error) {
-    console.error("Google login error:", error);
-    res.status(401).json({ message: "Google login failed" });
+    res.json({
+      message: "Google login successful",
+      user,
+      token: appToken,
+    });
+  } catch (err) {
+   
+    res.status(401).json({ success: false, message: "Invalid token" });
   }
 };
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
+   
     try {
       if(!fullName || !email || !password){
         return res.status(400).json({ message: "All field are required" });
@@ -62,14 +70,15 @@ export const signup = async (req, res) => {
   
       // Create a new user
       const newUser = new User({
-        fullName,
-        email,
+        fullName:fullName,
+        email:email,
         password: hashedPassword,
       });
   
       // Save the new user
 
       await newUser.save();
+    
       const token = setUser(newUser);
       res.cookie("uid", token, {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -84,7 +93,6 @@ export const signup = async (req, res) => {
         _id: newUser._id,
         fullName: newUser.fullName,
         email: newUser.email,
-        profilePic: newUser.profilePic,  // Ensure profilePic exists in your model
       });
   
     } catch (error) {
@@ -92,6 +100,7 @@ export const signup = async (req, res) => {
       res.status(500).json({ message: "Server error" });
     }
 }
+
 export const login=async(req,res)=>{
   const {email,password}=req.body
    try {
