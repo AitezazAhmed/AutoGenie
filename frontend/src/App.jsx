@@ -5,7 +5,7 @@ import LoginPage from './pages/LoginPage';
 import Home from './pages/Home';
 import TextGenerator from './pages/Textgenerator';
 import ScrollToTop from './components/ScrollToTop';
-import Quotegenerator from './pages/quotegenerator';
+import Quotegenerator from './pages/Quotegenerator';
 import Codegenerator from './pages/Codegenerator';
 import Businessnamegenerator from './pages/Businessnamegenerator';
 import Hashtaggenerator from './pages/Hashtaggenerator';
