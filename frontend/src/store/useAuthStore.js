@@ -3,7 +3,7 @@ import { axiosInstance } from "../lib/axios"
 import toast from "react-hot-toast";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
-
+const API_URL = import.meta.env.VITE_API_URL;
 export const useAuthStore=create((set,get)=>({
     authUser:null,
     isSigningUp:false,
@@ -24,7 +24,7 @@ export const useAuthStore=create((set,get)=>({
         }
     },
     
-   handleGoogleLogin : async () => {
+handleGoogleLogin: async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
@@ -32,22 +32,20 @@ export const useAuthStore=create((set,get)=>({
     // Get Firebase ID token (JWT)
     const idToken = await user.getIdToken();
 
-    // Send token to your backend
-    const response = await fetch("http://localhost:5000/api/auth/google-login", {
+    // Send token to backend (dynamic URL)
+    const response = await fetch(`${API_URL}/auth/google-login`, {
       method: "POST",
-      
-      headers: {
-        "Content-Type": "application/json",
-      },
-       credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // ✅ ensures cookies are sent
       body: JSON.stringify({ token: idToken }),
     });
 
     const data = await response.json();
-        set({ authUser:data });
-          toast.success("Google login successful");
+    set({ authUser: data });
+    toast.success("Google login successful");
   } catch (error) {
     console.error("Google login error:", error);
+    toast.error("Google login failed");
   }
 },
     signup: async (data) => {
