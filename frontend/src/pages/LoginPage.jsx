@@ -1,5 +1,6 @@
 import {React,useState} from 'react'
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore"
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
@@ -109,7 +110,9 @@ const LoginPage = () => {
                    "Login"
                  )}
                </button> 
-            <div className="space-x-3"> <span>Create a account?</span><span className="text-indigo-600"><a className="hover:underline " href="/signup">Sign Up</a></span></div>
+              <Link to={"/signup"}>
+            <div className="space-x-3"> <span>Create a account?</span><span className="text-indigo-600"><a className="hover:underline ">Sign Up</a></span></div> </Link>
+
           </form>
 
           <p className="mt-2   text-center text-sm/6 text-gray-500">
