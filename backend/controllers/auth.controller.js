@@ -31,12 +31,13 @@ export const googleLogin = async (req, res) => {
        const appToken = setUser(user);
 
     // Set cookie
-    res.cookie("uid", appToken, {
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-      sameSite: "None",
-      secure: process.env.NODE_ENV !== "development",
-    });
+res.cookie("uid", appToken, {
+  httpOnly: true,
+  sameSite: "None",
+  secure: process.env.NODE_ENV !== "development",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
 
     res.json({
       message: "Google login successful",
